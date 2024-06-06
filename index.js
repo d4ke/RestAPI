@@ -3,9 +3,31 @@ const url = require('url');
 const fs = require('fs');
 const [listenIP, listenPort] = ['127.0.0.1', 3000];
 
-// let users = fs.writeFile('./user.txt', );
+// let users = './user.txt';
 let users = [];
 let count = 1;
+
+function readWriteFileDB() {
+    if (fs.existsSync('./users.json')) {
+        if (users.length == 0) {
+            fs.readFile('./users.json', 'utf8' ,(err, data)=>{
+                if (err) { }
+                (!data) ? null : users = JSON.parse(data);
+                users.map((value, index, array) => {
+                    if (count < value.id) count = value.id
+                });
+                ++count;
+                console.log(count)
+            });
+        } else {
+            fs.writeFile('./users.json', JSON.stringify(users,null,2), ()=>{});
+        };
+    } else {
+        fs.writeFile('./users.json', JSON.stringify(users), ()=>{});
+    }
+}
+
+readWriteFileDB()
 
 const server = http.createServer((req, res) => {
     if (req.url === '/users' && req.method === 'GET') {
@@ -30,6 +52,7 @@ const server = http.createServer((req, res) => {
                     if (!user.name) throw new Error('Send empty name');
                     user.id = count++;
                     users.push(user);
+                    readWriteFileDB();
                     res.statusCode = 201;
                     res.end(JSON.stringify(user))
                 } catch(err) {
@@ -51,6 +74,7 @@ const server = http.createServer((req, res) => {
                 const userId = parseInt(req.url.split('/')[2]);
                 const user = users.find(value => value.id === userId);
                 user.name = newNameOfUser.name;
+                readWriteFileDB();
                 res.statusCode = 200;
                 res.end(JSON.stringify(user))
             } catch(err) {
@@ -61,8 +85,11 @@ const server = http.createServer((req, res) => {
         });
     } else if (req.url.includes('/users/') && req.method === 'DELETE') {
             const userId = parseInt(req.url.split('/')[2]);
-            const user = users.findIndex(value => value.id === userId);
-            users.splice(user, 1);
+            const userIndex = users.findIndex(value => value.id === userId);
+            if (userIndex > -1) {
+                users.splice(userIndex, 1);
+                readWriteFileDB();
+            }
             res.statusCode = 201;
             res.end()
     } else {
