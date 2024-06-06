@@ -1,43 +1,63 @@
 const http = require('http');
 const url = require('url');
+const fs = require('fs');
 const [listenIP, listenPort] = ['127.0.0.1', 3000];
 
+// let users = fs.writeFile('./user.txt', );
 let users = [];
 let count = 1;
 
-http.createServer((req, res) => {
+const server = http.createServer((req, res) => {
     if (req.url === '/users' && req.method === 'GET') {
         res.statusCode = 200;
         res.end(JSON.stringify(users))
     } else if (req.url.includes('/users/') && req.method === 'GET') {
         const userId = parseInt(req.url.split('/')[2]);
         const user = users.find(value => value.id === userId);
-        res.end(JSON.stringify(user));
+        if (user) {
+            res.end(JSON.stringify(user));
+        } else {
+            res.end('User id not found');
+        }
     } else if (req.url === '/users' && req.method === 'POST') {
-        let body = ''
-        req.on('data', (chunk) => {
-            body += chunk
-        });
+            let body = ''
+            req.on('data', (chunk) => {
+                body += chunk
+            });
+            req.on('end', () => {
+                try {
+                    const user = JSON.parse(body);
+                    if (!user.name) throw new Error('Send empty name');
+                    user.id = count++;
+                    users.push(user);
+                    res.statusCode = 201;
+                    res.end(JSON.stringify(user))
+                } catch(err) {
+                    res.statusCode = 400;
+                    // console.log('Error: ', err.name, err.message);
+                    res.end(`${err.name} : ${err.message}`);
+                };
+            });
 
-        req.on('end', () => {
-        const user = JSON.parse(body);
-        user.id = count++;
-        users.push(user);
-        res.statusCode = 201;
-        res.end(JSON.stringify(user))
-        });
     } else if (req.url.includes('/users/') && req.method === 'PUT') {
         let body = ''
         req.on('data', (chunk) => {
             body += chunk
         });
         req.on('end', () => {
-            const newNameOfUser = JSON.parse(body);
-            const userId = parseInt(req.url.split('/')[2]);
-            const user = users.find(value => value.id === userId);
-            user.name = newNameOfUser.name;
-            res.statusCode = 200;
-            res.end(JSON.stringify(user))
+            try {
+                const newNameOfUser = JSON.parse(body);
+                if (!newNameOfUser.name) throw new Error('Send empty name');
+                const userId = parseInt(req.url.split('/')[2]);
+                const user = users.find(value => value.id === userId);
+                user.name = newNameOfUser.name;
+                res.statusCode = 200;
+                res.end(JSON.stringify(user))
+            } catch(err) {
+                res.statusCode = 400;
+                // console.log('Error: ', err.name, err.message);
+                res.end(`${err.name} : ${err.message}`);
+            };
         });
     } else if (req.url.includes('/users/') && req.method === 'DELETE') {
             const userId = parseInt(req.url.split('/')[2]);
@@ -49,7 +69,9 @@ http.createServer((req, res) => {
         res.statusCode = 404
         res.end("Route not found")
     }
-}).listen(listenPort, listenIP, (error) => {
+});
+
+server.listen(listenPort, listenIP, (error) => {
     console.log((error) ? error : `Server listening ${listenIP}:${listenPort}`)
 });
 
