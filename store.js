@@ -23,13 +23,6 @@ function updateDB() {
 };
 updateDB();
 
-// (function() {
-//     users.map((value, index, array) => {
-//         if (count < value.id) count = value.id
-//     });
-//     ++count;
-// })();
-
 module.exports = {
     getUsers: () => users,
     getUser: (id) => users.find(value => value.id === id),
@@ -51,22 +44,4 @@ module.exports = {
             };
         updateDB();
     },
-    // save: () => {
-    //     if (fs.existsSync('./users.json')) {
-    //         if (users.length == 0) {
-    //             fs.readFile('./users.json', 'utf8' ,(err, data)=>{
-    //                 if (err) { }
-    //                 (!data) ? null : users = JSON.parse(data);
-    //                 users.map((value, index, array) => {
-    //                     if (count < value.id) count = value.id
-    //                 });
-    //                 ++count;
-    //             });
-    //         } else {
-    //             fs.writeFile('./users.json', JSON.stringify(users,null,2), ()=>{});
-    //         };
-    //     } else {
-    //         fs.writeFile('./users.json', JSON.stringify(users), ()=>{});
-    //     }
-    // },
 }
