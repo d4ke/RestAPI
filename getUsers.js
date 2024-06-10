@@ -1,6 +1,7 @@
-const usersDB = require('./store');
+// const usersDB = require('./store');
+const usersStore = require('./sql-store');
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
     res.statusCode = 200;
-    res.end(JSON.stringify(usersDB.getUsers()));
+    res.end(JSON.stringify(await usersStore.getUsers()));
 };

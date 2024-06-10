@@ -1,8 +1,9 @@
-const usersDB = require('./store');
+// const usersDB = require('./store');
+const usersStore = require('./sql-store');
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
     const userId = parseInt(req.url.split('/')[2]);
-        let user = usersDB.getUser(userId);
+        let user = await usersStore.getUser(userId);
         if (user) {
             res.end(JSON.stringify(user));
         } else {
